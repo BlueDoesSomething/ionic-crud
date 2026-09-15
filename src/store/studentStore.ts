@@ -13,16 +13,19 @@ export interface Student {
 }
 
 const studentsRef = dbRef(db, 'students');
+const connectedRef = dbRef(db, '.info/connected');
 
 const state = reactive({
-  students: [] as Student[]
+  students: [] as Student[],
+  isConnected: false
 });
 
-let unsubscribe: (() => void) | null = null;
+let unsubscribeStudents: (() => void) | null = null;
+let unsubscribeConnected: (() => void) | null = null;
 
 export const useStudentStore = () => {
   const init = () => {
-    unsubscribe = onValue(studentsRef, (snapshot) => {
+    unsubscribeStudents = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         state.students = Object.entries(data).map(([id, value]) => ({
@@ -33,12 +36,20 @@ export const useStudentStore = () => {
         state.students = [];
       }
     });
+
+    unsubscribeConnected = onValue(connectedRef, (snapshot) => {
+      state.isConnected = snapshot.val() === true;
+    });
   };
 
   const destroy = () => {
-    if (unsubscribe) {
-      unsubscribe();
-      unsubscribe = null;
+    if (unsubscribeStudents) {
+      unsubscribeStudents();
+      unsubscribeStudents = null;
+    }
+    if (unsubscribeConnected) {
+      unsubscribeConnected();
+      unsubscribeConnected = null;
     }
   };
 

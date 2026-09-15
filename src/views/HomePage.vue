@@ -15,6 +15,17 @@
     </ion-header>
 
     <ion-content :fullscreen="true">
+      <ion-item :color="store.state.isConnected ? 'success' : 'danger'" lines="none">
+        <ion-icon :icon="store.state.isConnected ? wifiOutline : wifiOfflineOutline" slot="start"></ion-icon>
+        <ion-label>
+          <h2>{{ store.state.isConnected ? 'Database Online' : 'Database Offline' }}</h2>
+          <p>{{ store.state.isConnected ? 'Connected to Firebase' : 'No connection to Firebase' }}</p>
+        </ion-label>
+        <ion-button fill="clear" slot="end" @click="reconnect">
+          <ion-icon :icon="refreshOutline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-item>
+
       <StudentList
         :students="filteredStudents"
         :search-query="searchQuery"
@@ -45,9 +56,9 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import {
   IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton,
-  IonIcon, IonSearchbar, alertController, toastController
+  IonIcon, IonSearchbar, IonItem, IonLabel, alertController, toastController
 } from '@ionic/vue';
-import { addOutline } from 'ionicons/icons';
+import { addOutline, wifiOutline, wifiOfflineOutline, refreshOutline } from 'ionicons/icons';
 import { useStudentStore, Student } from '../store/studentStore';
 import StudentList from '@/components/StudentList.vue';
 import StudentFormModal from '@/components/StudentFormModal.vue';
@@ -72,6 +83,17 @@ const filteredStudents = computed(() => {
   if (!searchQuery.value) return store.state.students;
   return store.searchStudents(searchQuery.value);
 });
+
+const reconnect = async () => {
+  store.destroy();
+  store.init();
+  const toast = await toastController.create({
+    message: 'Reconnecting to Firebase...',
+    duration: 1500,
+    color: 'medium'
+  });
+  await toast.present();
+};
 
 const openAddModal = () => {
   editingStudent.value = null;
