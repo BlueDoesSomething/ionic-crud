@@ -1,4 +1,4 @@
-import { reactive } from 'vue';
+import { reactive, ref } from 'vue';
 import { ref as dbRef, set, remove, onValue } from 'firebase/database';
 import { db } from '../firebase';
 
@@ -15,13 +15,8 @@ export interface Student {
 const studentsRef = dbRef(db, 'students');
 const connectedRef = dbRef(db, '.info/connected');
 
-const state = reactive<{
-  students: Student[];
-  isConnected: boolean;
-}>({
-  students: [],
-  isConnected: false
-});
+const students = reactive<Student[]>([]);
+const isConnected = ref(false);
 
 let unsubscribeStudents: (() => void) | null = null;
 let unsubscribeConnected: (() => void) | null = null;
@@ -35,14 +30,14 @@ export const useStudentStore = () => {
           id,
           ...(value as Omit<Student, 'id'>)
         }));
-        state.students.splice(0, state.students.length, ...mapped);
+        students.splice(0, students.length, ...mapped);
       } else {
-        state.students.splice(0, state.students.length);
+        students.splice(0, students.length);
       }
     });
 
     unsubscribeConnected = onValue(connectedRef, (snapshot) => {
-      state.isConnected = snapshot.val() === true;
+      isConnected.value = snapshot.val() === true;
     });
   };
 
@@ -80,12 +75,12 @@ export const useStudentStore = () => {
   };
 
   const getStudent = (id: string): Student | undefined => {
-    return state.students.find(s => s.id === id);
+    return students.find(s => s.id === id);
   };
 
   const searchStudents = (query: string): Student[] => {
     const lower = query.toLowerCase();
-    return state.students.filter(s =>
+    return students.filter(s =>
       s.studentId.toLowerCase().includes(lower) ||
       s.name.toLowerCase().includes(lower) ||
       s.course.toLowerCase().includes(lower) ||
@@ -96,7 +91,8 @@ export const useStudentStore = () => {
   };
 
   return {
-    state,
+    students,
+    isConnected,
     init,
     destroy,
     addStudent,

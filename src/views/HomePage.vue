@@ -65,8 +65,7 @@ import StudentFormModal from '@/components/StudentFormModal.vue';
 import StudentDetailModal from '@/components/StudentDetailModal.vue';
 
 const store = useStudentStore();
-const { state } = store;
-const isOnline = computed(() => state.isConnected);
+const isOnline = computed(() => store.isConnected.value);
 
 onMounted(() => {
   store.init();
@@ -82,7 +81,7 @@ const editingStudent = ref<Student | null>(null);
 const viewingStudent = ref<Student | null>(null);
 
 const filteredStudents = computed(() => {
-  if (!searchQuery.value) return state.students;
+  if (!searchQuery.value) return store.students;
   return store.searchStudents(searchQuery.value);
 });
 
