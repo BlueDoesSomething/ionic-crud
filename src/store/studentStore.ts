@@ -15,8 +15,11 @@ export interface Student {
 const studentsRef = dbRef(db, 'students');
 const connectedRef = dbRef(db, '.info/connected');
 
-const state = reactive({
-  students: [] as Student[],
+const state = reactive<{
+  students: Student[];
+  isConnected: boolean;
+}>({
+  students: [],
   isConnected: false
 });
 
@@ -28,12 +31,13 @@ export const useStudentStore = () => {
     unsubscribeStudents = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        state.students = Object.entries(data).map(([id, value]) => ({
+        const mapped: Student[] = Object.entries(data).map(([id, value]) => ({
           id,
           ...(value as Omit<Student, 'id'>)
         }));
+        state.students.splice(0, state.students.length, ...mapped);
       } else {
-        state.students = [];
+        state.students.splice(0, state.students.length);
       }
     });
 
@@ -60,13 +64,13 @@ export const useStudentStore = () => {
   };
 
   const updateStudent = async (id: string, data: Partial<Student>) => {
-    const updateData = {
-      studentId: data.studentId,
-      name: data.name,
-      course: data.course,
-      yearLevel: data.yearLevel,
-      section: data.section,
-      contactNumber: data.contactNumber
+    const updateData: Record<string, string> = {
+      studentId: data.studentId ?? '',
+      name: data.name ?? '',
+      course: data.course ?? '',
+      yearLevel: data.yearLevel ?? '',
+      section: data.section ?? '',
+      contactNumber: data.contactNumber ?? ''
     };
     await set(dbRef(db, `students/${id}`), updateData);
   };

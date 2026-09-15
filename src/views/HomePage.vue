@@ -15,11 +15,11 @@
     </ion-header>
 
     <ion-content :fullscreen="true">
-      <ion-item :color="store.state.isConnected ? 'success' : 'danger'" lines="none">
-        <ion-icon :icon="store.state.isConnected ? wifiOutline : wifiOfflineOutline" slot="start"></ion-icon>
+      <ion-item :color="isOnline ? 'success' : 'danger'" lines="none">
+        <ion-icon :icon="isOnline ? wifiOutline : cloudOfflineOutline" slot="start"></ion-icon>
         <ion-label>
-          <h2>{{ store.state.isConnected ? 'Database Online' : 'Database Offline' }}</h2>
-          <p>{{ store.state.isConnected ? 'Connected to Firebase' : 'No connection to Firebase' }}</p>
+          <h2>{{ isOnline ? 'Database Online' : 'Database Offline' }}</h2>
+          <p>{{ isOnline ? 'Connected to Firebase' : 'No connection to Firebase' }}</p>
         </ion-label>
         <ion-button fill="clear" slot="end" @click="reconnect">
           <ion-icon :icon="refreshOutline" slot="icon-only"></ion-icon>
@@ -55,16 +55,18 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import {
-  IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton,
+  IonPage, IonHeader, IonToolbar, IonContent, IonButtons, IonButton,
   IonIcon, IonSearchbar, IonItem, IonLabel, alertController, toastController
 } from '@ionic/vue';
-import { addOutline, wifiOutline, wifiOfflineOutline, refreshOutline } from 'ionicons/icons';
+import { addOutline, wifiOutline, cloudOfflineOutline, refreshOutline } from 'ionicons/icons';
 import { useStudentStore, Student } from '../store/studentStore';
 import StudentList from '@/components/StudentList.vue';
 import StudentFormModal from '@/components/StudentFormModal.vue';
 import StudentDetailModal from '@/components/StudentDetailModal.vue';
 
 const store = useStudentStore();
+const { state } = store;
+const isOnline = computed(() => state.isConnected);
 
 onMounted(() => {
   store.init();
@@ -80,7 +82,7 @@ const editingStudent = ref<Student | null>(null);
 const viewingStudent = ref<Student | null>(null);
 
 const filteredStudents = computed(() => {
-  if (!searchQuery.value) return store.state.students;
+  if (!searchQuery.value) return state.students;
   return store.searchStudents(searchQuery.value);
 });
 
